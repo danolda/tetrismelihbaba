@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tetris P2P - Auto Size</title>
+    <title>Tetris P2P</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
@@ -16,24 +16,24 @@
             <button class="big-btn" onclick="createRoom()">Oda Kur</button>
             <p>veya</p>
             <input type="text" id="room-link-input" placeholder="Oda Linkini Yapıştır">
-            <button class="small-btn" onclick="joinRoom()">Katıl</button>
+            <button class="big-btn" style="background:#444;" onclick="joinRoom()">Katıl</button>
         </div>
         <div id="loading" style="display:none;">Bağlantı Kuruluyor...</div>
         <div id="share-area" style="display:none;">
-            <p>Bu linki arkadaşına gönder:</p>
+            <p style="color:#ccc; font-size:0.9rem;">Arkadaşına gönder:</p>
             <input type="text" id="share-link" readonly>
-            <button onclick="copyLink()">Kopyala</button>
+            <button class="big-btn" onclick="copyLink()">Kopyala</button>
             <p class="waiting-text">Rakip bekleniyor...</p>
         </div>
     </div>
 
-    <!-- OYUN SONU EKRANI (MODAL) -->
+    <!-- OYUN SONU EKRANI -->
     <div id="game-over-modal" style="display:none;">
         <div class="modal-content">
             <h2 id="result-title">OYUN BİTTİ</h2>
-            <div class="scores-result">
-                <p>Senin Puanın: <span id="final-my-score">0</span></p>
-                <p>Rakip Puanı: <span id="final-opp-score">0</span></p>
+            <div style="margin: 20px 0; font-size: 1.2rem;">
+                <p>Sen: <span id="final-my-score" style="color:var(--accent)">0</span></p>
+                <p>Rakip: <span id="final-opp-score">0</span></p>
             </div>
             <button class="big-btn" onclick="location.reload()">Tekrar Oyna</button>
         </div>
@@ -42,18 +42,20 @@
     <!-- OYUN EKRANI -->
     <div id="game-container" style="display:none;">
         
-        <!-- Üst Bilgi -->
+        <!-- Üst Bar -->
         <div class="top-bar">
-            <div class="score-box">SEN: <span id="score">0</span></div>
-            <div class="score-box">RAKİP: <span id="opp-score">0</span></div>
+            <div>SEN: <span id="score" style="color:var(--accent)">0</span></div>
+            <div>RAKİP: <span id="opp-score">0</span></div>
         </div>
 
-        <!-- Sahne (Responsive) -->
+        <!-- Sahne -->
         <div class="stage-area">
-            <!-- Ana Oyun -->
-            <canvas id="tetris"></canvas>
+            <!-- Ana Oyun (Wrapper içinde) -->
+            <div class="game-wrapper">
+                <canvas id="tetris"></canvas>
+            </div>
 
-            <!-- Yan Panel (Gelecek Parça + Rakip Ekranı) -->
+            <!-- Yan Panel -->
             <div class="side-panel">
                 <div class="mini-box">
                     <span>SONRAKİ</span>
@@ -63,11 +65,8 @@
                     <span>RAKİP</span>
                     <canvas id="opponent"></canvas>
                 </div>
-                <!-- Kontrol İpucu -->
                 <div class="controls-hint">
-                    👆 Çevir<br>
-                    👈👉 Hareket<br>
-                    👇 Hızlı İniş
+                    👆 Çevir<br>👈👉 Git<br>👇 İndir
                 </div>
             </div>
         </div>
