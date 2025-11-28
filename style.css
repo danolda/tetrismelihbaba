@@ -1,0 +1,80 @@
+body {
+    background: #202028;
+    color: #fff;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden; /* Kaydırmayı engelle */
+}
+
+#connection-menu {
+    text-align: center;
+    padding: 20px;
+    background: #333;
+    border-radius: 10px;
+}
+
+input {
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    margin-bottom: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    background: #00d2ff;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.boards {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+canvas {
+    border: 2px solid #333;
+    background-color: #000;
+}
+
+.small canvas {
+    border: 1px solid #555;
+}
+
+.controls {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn {
+    width: 70px;
+    height: 60px;
+    font-size: 24px;
+    background: #444;
+    color: white;
+    border: 2px solid #666;
+    touch-action: manipulation; /* Telefondaki gecikmeyi önler */
+}
+
+.btn:active {
+    background: #666;
+}
