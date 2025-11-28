@@ -1,4 +1,6 @@
-// --- CANVAS AYARLARI ---
+// ==========================================
+// 1. AYARLAR VE CANVAS TANIMLAMALARI
+// ==========================================
 const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 const nextCanvas = document.getElementById('next-piece');
@@ -6,28 +8,54 @@ const nextContext = nextCanvas.getContext('2d');
 const oppCanvas = document.getElementById('opponent');
 const oppContext = oppCanvas.getContext('2d');
 
-// Çözünürlük ölçekleme
-canvas.width = 240; canvas.height = 400; context.scale(20, 20);
-nextCanvas.width = 80; nextCanvas.height = 80; nextContext.scale(20, 20);
-oppCanvas.width = 120; oppCanvas.height = 200; oppContext.scale(10, 10);
+// Çözünürlük ve Ölçekleme
+canvas.width = 240; 
+canvas.height = 400; 
+context.scale(20, 20);
 
-// --- OYUN DEĞİŞKENLERİ ---
+nextCanvas.width = 80; 
+nextCanvas.height = 80; 
+nextContext.scale(20, 20);
+
+oppCanvas.width = 120; 
+oppCanvas.height = 200; 
+oppContext.scale(10, 10);
+
+// Renk Paleti
+const colors = [
+    null, 
+    '#FF0D72', // T
+    '#0DC2FF', // I
+    '#0DFF72', // S
+    '#F538FF', // Z
+    '#FF8E0D', // L
+    '#FFE138', // J
+    '#3877FF', // O
+];
+
+// Oyun Değişkenleri
 const arena = createMatrix(12, 20);
-const player = { pos: {x: 0, y: 0}, matrix: null, score: 0, next: null };
+const player = {
+    pos: {x: 0, y: 0},
+    matrix: null,
+    score: 0,
+    next: null
+};
+
 let opponentScore = 0;
 let dropCounter = 0;
 let dropInterval = 1000;
 let lastTime = 0;
 let gameActive = false;
 
-const colors = [null, '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'];
-
-// --- PEERJS BAĞLANTI AYARLARI (KRİTİK GÜNCELLEME) ---
+// ==========================================
+// 2. PEERJS (MULTIPLAYER BAĞLANTISI)
+// ==========================================
 let peer = null;
 let conn = null;
 
 function initPeer(callback) {
-    // Google STUN sunucularını ekledik, telefonda bağlantıyı bu çözer
+    // Google STUN sunucuları (Mobil veri bağlantısı için şart)
     peer = new Peer({
         config: {
             'iceServers': [
@@ -48,12 +76,10 @@ function initPeer(callback) {
         setupConnection();
     });
 
-    // Hata yakalama (Bağlantı hatası olursa kullanıcıya söyle)
     peer.on('error', (err) => {
         console.error(err);
-        alert("Bağlantı Hatası: " + err.type + "\nLütfen sayfayı yenileyip tekrar dene.");
-        document.getElementById('loading').style.display = 'none';
-        document.querySelector('.menu-box').style.display = 'block';
+        alert("Bağlantı Hatası: " + err.type + "\nSayfayı yenileyip tekrar dene.");
+        resetMenu();
     });
 }
 
@@ -63,30 +89,21 @@ function createRoom() {
     document.getElementById('loading').innerText = "Oda Oluşturuluyor...";
     
     initPeer((id) => {
-        // Mevcut URL'ye ID ekle
         const gameUrl = window.location.href.split('?')[0] + '?room=' + id;
-        
         document.getElementById('loading').style.display = 'none';
         document.getElementById('share-area').style.display = 'block';
-        
-        const input = document.getElementById('share-link');
-        input.value = gameUrl;
+        document.getElementById('share-link').value = gameUrl;
     });
 }
 
-// Mobilde kopyalama sorununu çözen fonksiyon
 async function copyLink() {
     const input = document.getElementById("share-link");
     const text = input.value;
-
     try {
-        // Modern yöntem (Android/iOS uyumlu)
         await navigator.clipboard.writeText(text);
-        alert("Link Kopyalandı! Arkadaşına yapıştır.");
+        alert("Link Kopyalandı! Arkadaşına gönder.");
     } catch (err) {
-        // Eski yöntem (Yedek)
         input.select();
-        input.setSelectionRange(0, 99999); // Mobil için
         document.execCommand("copy");
         alert("Link Kopyalandı!");
     }
@@ -94,7 +111,10 @@ async function copyLink() {
 
 function joinRoom() {
     let roomId = document.getElementById('room-link-input').value;
-    if (roomId.includes('?room=')) roomId = roomId.split('?room=')[1];
+    // Link yapıştırıldıysa ID'yi ayıkla
+    if (roomId.includes('?room=')) {
+        roomId = roomId.split('?room=')[1];
+    }
     
     if(!roomId) return alert("Lütfen geçerli bir Link veya ID girin.");
 
@@ -105,40 +125,49 @@ function joinRoom() {
     initPeer(() => {
         conn = peer.connect(roomId);
         
-        // Bağlantı kurulamazsa 5 saniye sonra hata ver
+        conn.on('open', setupConnection);
+        
+        conn.on('error', (err) => {
+            alert("Bağlantı sağlanamadı: " + err);
+            resetMenu();
+        });
+
+        // 5 saniye içinde bağlanamazsa uyar
         setTimeout(() => {
             if(!conn.open && !gameActive) {
-                // alert("Bağlantı uzun sürdü. ID yanlış olabilir veya ağ engelliyor.");
+                console.log("Bağlantı zaman aşımı.");
             }
         }, 5000);
-
-        conn.on('open', setupConnection);
-        conn.on('error', (err) => alert("Bağlantı hatası: " + err));
     });
 }
 
-// URL Kontrolü (Link ile gelindiyse)
+// URL Parametresi Kontrolü (Link ile gelenler için)
 window.onload = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
     if (roomParam) {
         document.getElementById('room-link-input').value = roomParam;
-        joinRoom(); // Otomatik bağlanmayı dene
+        joinRoom();
     }
 };
+
+function resetMenu() {
+    document.getElementById('loading').style.display = 'none';
+    document.querySelector('.menu-box').style.display = 'block';
+}
 
 function setupConnection() {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('game-container').style.display = 'flex';
     
-    // Veri dinleme
+    // Veri Alışverişi Dinleyicisi
     conn.on('data', (data) => {
         if (data.type === 'update') {
             drawOpponent(data.arena);
             opponentScore = data.score;
             document.getElementById('opp-score').innerText = opponentScore;
         } else if (data.type === 'gameover') {
-            handleGameOver(false);
+            handleGameOver(false); // false = ben kaybetmedim, rakip kaybetti
         }
     });
 
@@ -147,14 +176,23 @@ function setupConnection() {
 
 function sendState() {
     if (conn && conn.open) {
-        conn.send({ type: 'update', arena: arena, score: player.score });
+        conn.send({
+            type: 'update',
+            arena: arena,
+            score: player.score
+        });
     }
 }
 
-// --- OYUN MANTIĞI ---
+// ==========================================
+// 3. OYUN MANTIĞI
+// ==========================================
+
 function createMatrix(w, h) {
     const matrix = [];
-    while (h--) matrix.push(new Array(w).fill(0));
+    while (h--) {
+        matrix.push(new Array(w).fill(0));
+    }
     return matrix;
 }
 
@@ -174,8 +212,9 @@ function drawMatrix(matrix, offset, ctx) {
             if (value !== 0) {
                 ctx.fillStyle = colors[value];
                 ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
+                // 3D efekti için kenarlık
                 ctx.lineWidth = 0.05;
-                ctx.strokeStyle = 'white';
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
                 ctx.strokeRect(x + offset.x, y + offset.y, 1, 1);
             }
         });
@@ -183,21 +222,28 @@ function drawMatrix(matrix, offset, ctx) {
 }
 
 function draw() {
+    // Ana Sahneyi Temizle
     context.fillStyle = '#000';
     context.fillRect(0, 0, canvas.width/20, canvas.height/20);
+    
     drawMatrix(arena, {x: 0, y: 0}, context);
     drawMatrix(player.matrix, player.pos, context);
 }
 
 function drawNext() {
+    // Sonraki Parça Sahnesi
     nextContext.fillStyle = '#000';
     nextContext.fillRect(0, 0, 4, 4);
-    const offsetX = (4 - player.next[0].length) / 2;
-    const offsetY = (4 - player.next.length) / 2;
-    drawMatrix(player.next, {x: offsetX, y: offsetY}, nextContext);
+    
+    if(player.next) {
+        const offsetX = (4 - player.next[0].length) / 2;
+        const offsetY = (4 - player.next.length) / 2;
+        drawMatrix(player.next, {x: offsetX, y: offsetY}, nextContext);
+    }
 }
 
 function drawOpponent(oppArena) {
+    // Rakip Sahnesi
     oppContext.fillStyle = '#000';
     oppContext.fillRect(0, 0, 12, 20);
     drawMatrix(oppArena, {x: 0, y: 0}, oppContext);
@@ -225,21 +271,35 @@ function rotate(matrix, dir) {
 
 function playerReset() {
     const pieces = 'ILJOTSZ';
-    if (player.next === null) player.next = createPiece(pieces[pieces.length * Math.random() | 0]);
+    // Eğer oyun başında next yoksa oluştur
+    if (player.next === null) {
+        player.next = createPiece(pieces[pieces.length * Math.random() | 0]);
+    }
+    
+    // Mevcut parça = sıradaki
     player.matrix = player.next;
+    // Yeni sıradaki
     player.next = createPiece(pieces[pieces.length * Math.random() | 0]);
     drawNext();
 
     player.pos.y = 0;
     player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
     
-    if (collide(arena, player)) handleGameOver(true);
+    // Çarpışma kontrolü (Oyun Bitti mi?)
+    if (collide(arena, player)) {
+        handleGameOver(true); // true = ben kaybettim
+    }
 }
 
 function handleGameOver(iLost) {
     gameActive = false;
-    if (iLost && conn && conn.open) conn.send({ type: 'gameover' });
+    
+    // Eğer ben kaybettiysem rakibe haber ver
+    if (iLost && conn && conn.open) {
+        conn.send({ type: 'gameover' });
+    }
 
+    // Modal Göster
     document.getElementById('game-over-modal').style.display = 'flex';
     document.getElementById('final-my-score').innerText = player.score;
     document.getElementById('final-opp-score').innerText = opponentScore;
@@ -247,7 +307,7 @@ function handleGameOver(iLost) {
     const title = document.getElementById('result-title');
     if (iLost) {
         title.innerText = "KAYBETTİN!";
-        title.style.color = "red";
+        title.style.color = "#ff4444";
     } else {
         title.innerText = "KAZANDIN!";
         title.style.color = "#00d2ff";
@@ -258,7 +318,9 @@ function arenaSweep() {
     let rowCount = 1;
     outer: for (let y = arena.length - 1; y > 0; --y) {
         for (let x = 0; x < arena[y].length; ++x) {
-            if (arena[y][x] === 0) continue outer;
+            if (arena[y][x] === 0) {
+                continue outer;
+            }
         }
         const row = arena.splice(y, 1)[0].fill(0);
         arena.unshift(row);
@@ -273,7 +335,10 @@ function collide(arena, player) {
     const [m, o] = [player.matrix, player.pos];
     for (let y = 0; y < m.length; ++y) {
         for (let x = 0; x < m[y].length; ++x) {
-            if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) return true;
+            if (m[y][x] !== 0 &&
+               (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
+                return true;
+            }
         }
     }
     return false;
@@ -286,14 +351,16 @@ function playerDrop() {
         merge(arena, player);
         playerReset();
         arenaSweep();
-        sendState();
+        sendState(); // Hamle bitti, durumu rakibe ilet
     }
     dropCounter = 0;
 }
 
 function playerMove(dir) {
     player.pos.x += dir;
-    if (collide(arena, player)) player.pos.x -= dir;
+    if (collide(arena, player)) {
+        player.pos.x -= dir;
+    }
 }
 
 function playerRotate(dir) {
@@ -313,7 +380,9 @@ function playerRotate(dir) {
 
 function updateScore() {
     document.getElementById('score').innerText = player.score;
-    // Zorluk Artışı
+    
+    // --- ZORLUK ARTIŞI ---
+    // Her 100 puanda bir hızlan (En hızlı 100ms)
     const level = Math.floor(player.score / 100);
     const newInterval = 1000 - (level * 50);
     dropInterval = newInterval > 100 ? newInterval : 100;
@@ -321,10 +390,15 @@ function updateScore() {
 
 function update(time = 0) {
     if (!gameActive) return;
+
     const deltaTime = time - lastTime;
     lastTime = time;
+
     dropCounter += deltaTime;
-    if (dropCounter > dropInterval) playerDrop();
+    if (dropCounter > dropInterval) {
+        playerDrop();
+    }
+
     draw();
     requestAnimationFrame(update);
 }
@@ -334,6 +408,7 @@ function startGame() {
     player.score = 0;
     opponentScore = 0;
     dropInterval = 1000;
+    
     document.getElementById('game-over-modal').style.display = 'none';
     updateScore();
     playerReset();
@@ -341,47 +416,77 @@ function startGame() {
     update();
 }
 
-// --- KONTROLLER (DOKUNMATİK & KLAVYE) ---
+// ==========================================
+// 4. KONTROLLER (MOBİL & KLAVYE)
+// ==========================================
+
+// --- KLAVYE ---
+document.addEventListener('keydown', event => {
+    if(!gameActive) return;
+    
+    if (event.keyCode === 37) playerMove(-1); // Sol
+    else if (event.keyCode === 39) playerMove(1); // Sağ
+    else if (event.keyCode === 40) playerDrop(); // Aşağı
+    else if (event.keyCode === 38) playerRotate(1); // Yukarı (Döndür)
+});
+
+// --- DOKUNMATİK (BUTONLARI BOZMAYAN VERSİYON) ---
 let touchStartX = 0;
 let touchStartY = 0;
 let touchEndTime = 0;
 
 document.body.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-    touchEndTime = new Date().getTime();
+    // 1. Kural: Eğer dokunulan yer bir Buton veya Input ise, oyun müdahale etmesin.
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') {
+        return; 
+    }
+    
+    if(gameActive) {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+        touchEndTime = new Date().getTime();
+    }
 }, {passive: false});
 
 document.body.addEventListener('touchend', e => {
-    // Sadece oyun aktifse engelle, menüde tıklamaya izin ver
-    if(gameActive) e.preventDefault(); 
-    
+    // 1. Kural: Buton veya Input'a dokunulduysa çıkış yap.
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') {
+        return; 
+    }
+
+    // Oyun aktif değilse çık.
+    if (!gameActive) return;
+
+    // Sadece oyun oynanırken sayfa hareketini engelle
+    e.preventDefault();
+
     const touchEndX = e.changedTouches[0].screenX;
     const touchEndY = e.changedTouches[0].screenY;
     const duration = new Date().getTime() - touchEndTime;
     const diffX = touchEndX - touchStartX;
     const diffY = touchEndY - touchStartY;
 
-    if (!gameActive) return;
-
+    // Tıklama Algıla (Döndürme)
     if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10 && duration < 300) {
         playerRotate(1);
-    } else if (Math.abs(diffX) > Math.abs(diffY)) {
-        if (Math.abs(diffX) > 30) playerMove(diffX > 0 ? 1 : -1);
+    } 
+    // Kaydırma Algıla
+    else if (Math.abs(diffX) > Math.abs(diffY)) {
+        // Yatay
+        if (Math.abs(diffX) > 30) {
+            playerMove(diffX > 0 ? 1 : -1);
+        }
     } else {
-        if (diffY > 30) playerDrop();
+        // Dikey (Aşağı)
+        if (diffY > 30) {
+            playerDrop();
+        }
     }
 }, {passive: false});
 
-document.addEventListener('keydown', event => {
-    if(!gameActive) return;
-    if (event.keyCode === 37) playerMove(-1);
-    else if (event.keyCode === 39) playerMove(1);
-    else if (event.keyCode === 40) playerDrop();
-    else if (event.keyCode === 38) playerRotate(1);
-});
-
-// Sayfa kaymasını engelle
+// Kaydırma Engelleme (Sadece oyun sırasında)
 document.addEventListener('touchmove', function(e) {
-    if(gameActive) e.preventDefault();
+    if(gameActive && e.target.tagName !== 'INPUT') {
+        e.preventDefault();
+    }
 }, { passive: false });
