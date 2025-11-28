@@ -363,3 +363,12 @@ document.addEventListener('keydown', event => {
     else if (event.keyCode === 40) playerDrop();
     else if (event.keyCode === 38) playerRotate(1);
 });
+// --- SAYFA KAYMASINI ENGELLEME (KODUN EN ALTINA EKLE) ---
+document.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+}, { passive: false });
+
+// Çift dokunma zoom'unu engellemek için
+document.addEventListener('dblclick', function(event) {
+    event.preventDefault();
+}, { passive: false });
