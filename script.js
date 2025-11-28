@@ -1,4 +1,4 @@
-// Canvas Elementleri
+// --- CANVAS AYARLARI ---
 const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 const nextCanvas = document.getElementById('next-piece');
@@ -6,88 +6,124 @@ const nextContext = nextCanvas.getContext('2d');
 const oppCanvas = document.getElementById('opponent');
 const oppContext = oppCanvas.getContext('2d');
 
-// İç Çözünürlük Ayarları (Görüntü kalitesi için yüksek tutuyoruz)
-canvas.width = 240;
-canvas.height = 400;
-context.scale(20, 20);
-
-nextCanvas.width = 80;
-nextCanvas.height = 80;
-nextContext.scale(20, 20);
-
-oppCanvas.width = 120;
-oppCanvas.height = 200;
-oppContext.scale(10, 10);
+// Çözünürlük ölçekleme
+canvas.width = 240; canvas.height = 400; context.scale(20, 20);
+nextCanvas.width = 80; nextCanvas.height = 80; nextContext.scale(20, 20);
+oppCanvas.width = 120; oppCanvas.height = 200; oppContext.scale(10, 10);
 
 // --- OYUN DEĞİŞKENLERİ ---
 const arena = createMatrix(12, 20);
-const player = {
-    pos: {x: 0, y: 0},
-    matrix: null,
-    score: 0,
-    next: null
-};
-
+const player = { pos: {x: 0, y: 0}, matrix: null, score: 0, next: null };
 let opponentScore = 0;
 let dropCounter = 0;
-let dropInterval = 1000; // Başlangıç hızı (1 saniye)
+let dropInterval = 1000;
 let lastTime = 0;
 let gameActive = false;
 
-const colors = [
-    null, '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF',
-];
+const colors = [null, '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'];
 
-// --- PEERJS BAĞLANTISI ---
+// --- PEERJS BAĞLANTI AYARLARI (KRİTİK GÜNCELLEME) ---
 let peer = null;
 let conn = null;
 
 function initPeer(callback) {
-    peer = new Peer(null, { debug: 1 });
-    peer.on('open', (id) => { if (callback) callback(id); });
+    // Google STUN sunucularını ekledik, telefonda bağlantıyı bu çözer
+    peer = new Peer({
+        config: {
+            'iceServers': [
+                { url: 'stun:stun.l.google.com:19302' },
+                { url: 'stun:stun1.l.google.com:19302' }
+            ]
+        },
+        debug: 1
+    });
+
+    peer.on('open', (id) => {
+        console.log('ID Oluşturuldu:', id);
+        if (callback) callback(id);
+    });
+
     peer.on('connection', (c) => {
         conn = c;
         setupConnection();
+    });
+
+    // Hata yakalama (Bağlantı hatası olursa kullanıcıya söyle)
+    peer.on('error', (err) => {
+        console.error(err);
+        alert("Bağlantı Hatası: " + err.type + "\nLütfen sayfayı yenileyip tekrar dene.");
+        document.getElementById('loading').style.display = 'none';
+        document.querySelector('.menu-box').style.display = 'block';
     });
 }
 
 function createRoom() {
     document.querySelector('.menu-box').style.display = 'none';
     document.getElementById('loading').style.display = 'block';
+    document.getElementById('loading').innerText = "Oda Oluşturuluyor...";
     
     initPeer((id) => {
+        // Mevcut URL'ye ID ekle
         const gameUrl = window.location.href.split('?')[0] + '?room=' + id;
+        
         document.getElementById('loading').style.display = 'none';
         document.getElementById('share-area').style.display = 'block';
-        document.getElementById('share-link').value = gameUrl;
+        
+        const input = document.getElementById('share-link');
+        input.value = gameUrl;
     });
 }
 
-function copyLink() {
-    const copyText = document.getElementById("share-link");
-    copyText.select();
-    document.execCommand("copy");
-    alert("Kopyalandı!");
+// Mobilde kopyalama sorununu çözen fonksiyon
+async function copyLink() {
+    const input = document.getElementById("share-link");
+    const text = input.value;
+
+    try {
+        // Modern yöntem (Android/iOS uyumlu)
+        await navigator.clipboard.writeText(text);
+        alert("Link Kopyalandı! Arkadaşına yapıştır.");
+    } catch (err) {
+        // Eski yöntem (Yedek)
+        input.select();
+        input.setSelectionRange(0, 99999); // Mobil için
+        document.execCommand("copy");
+        alert("Link Kopyalandı!");
+    }
 }
 
 function joinRoom() {
     let roomId = document.getElementById('room-link-input').value;
     if (roomId.includes('?room=')) roomId = roomId.split('?room=')[1];
-    if(!roomId) return alert("ID Girilmedi");
+    
+    if(!roomId) return alert("Lütfen geçerli bir Link veya ID girin.");
 
-    document.getElementById('menu-screen').innerHTML = "<h1>Bağlanılıyor...</h1>";
+    document.querySelector('.menu-box').style.display = 'none';
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('loading').innerText = "Odaya Bağlanılıyor...";
+    
     initPeer(() => {
         conn = peer.connect(roomId);
+        
+        // Bağlantı kurulamazsa 5 saniye sonra hata ver
+        setTimeout(() => {
+            if(!conn.open && !gameActive) {
+                // alert("Bağlantı uzun sürdü. ID yanlış olabilir veya ağ engelliyor.");
+            }
+        }, 5000);
+
         conn.on('open', setupConnection);
+        conn.on('error', (err) => alert("Bağlantı hatası: " + err));
     });
 }
 
+// URL Kontrolü (Link ile gelindiyse)
 window.onload = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
     if (roomParam) {
         document.getElementById('room-link-input').value = roomParam;
-        joinRoom();
+        joinRoom(); // Otomatik bağlanmayı dene
     }
 };
 
@@ -95,15 +131,14 @@ function setupConnection() {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('game-container').style.display = 'flex';
     
+    // Veri dinleme
     conn.on('data', (data) => {
         if (data.type === 'update') {
             drawOpponent(data.arena);
             opponentScore = data.score;
             document.getElementById('opp-score').innerText = opponentScore;
-        }
-        else if (data.type === 'gameover') {
-            // Rakip yandı, biz kazandık demektir ama iki tarafı da durduruyoruz
-            handleGameOver(false); // false = ben kaybetmedim, rakip kaybetti
+        } else if (data.type === 'gameover') {
+            handleGameOver(false);
         }
     });
 
@@ -112,16 +147,11 @@ function setupConnection() {
 
 function sendState() {
     if (conn && conn.open) {
-        conn.send({
-            type: 'update',
-            arena: arena,
-            score: player.score
-        });
+        conn.send({ type: 'update', arena: arena, score: player.score });
     }
 }
 
 // --- OYUN MANTIĞI ---
-
 function createMatrix(w, h) {
     const matrix = [];
     while (h--) matrix.push(new Array(w).fill(0));
@@ -154,7 +184,7 @@ function drawMatrix(matrix, offset, ctx) {
 
 function draw() {
     context.fillStyle = '#000';
-    context.fillRect(0, 0, canvas.width/20, canvas.height/20); // Scale olduğu için
+    context.fillRect(0, 0, canvas.width/20, canvas.height/20);
     drawMatrix(arena, {x: 0, y: 0}, context);
     drawMatrix(player.matrix, player.pos, context);
 }
@@ -203,18 +233,12 @@ function playerReset() {
     player.pos.y = 0;
     player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
     
-    if (collide(arena, player)) {
-        // --- OYUN BİTTİ (KAYBETTİN) ---
-        handleGameOver(true);
-    }
+    if (collide(arena, player)) handleGameOver(true);
 }
 
 function handleGameOver(iLost) {
     gameActive = false;
-    
-    if (iLost && conn && conn.open) {
-        conn.send({ type: 'gameover' });
-    }
+    if (iLost && conn && conn.open) conn.send({ type: 'gameover' });
 
     document.getElementById('game-over-modal').style.display = 'flex';
     document.getElementById('final-my-score').innerText = player.score;
@@ -249,9 +273,7 @@ function collide(arena, player) {
     const [m, o] = [player.matrix, player.pos];
     for (let y = 0; y < m.length; ++y) {
         for (let x = 0; x < m[y].length; ++x) {
-            if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
-                return true;
-            }
+            if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) return true;
         }
     }
     return false;
@@ -271,9 +293,7 @@ function playerDrop() {
 
 function playerMove(dir) {
     player.pos.x += dir;
-    if (collide(arena, player)) {
-        player.pos.x -= dir;
-    }
+    if (collide(arena, player)) player.pos.x -= dir;
 }
 
 function playerRotate(dir) {
@@ -293,9 +313,7 @@ function playerRotate(dir) {
 
 function updateScore() {
     document.getElementById('score').innerText = player.score;
-    
-    // --- ZORLUK ARTIŞI ---
-    // Her 100 puanda 50ms hızlandır (Minimum 100ms'ye kadar)
+    // Zorluk Artışı
     const level = Math.floor(player.score / 100);
     const newInterval = 1000 - (level * 50);
     dropInterval = newInterval > 100 ? newInterval : 100;
@@ -303,13 +321,10 @@ function updateScore() {
 
 function update(time = 0) {
     if (!gameActive) return;
-
     const deltaTime = time - lastTime;
     lastTime = time;
     dropCounter += deltaTime;
-    if (dropCounter > dropInterval) {
-        playerDrop();
-    }
+    if (dropCounter > dropInterval) playerDrop();
     draw();
     requestAnimationFrame(update);
 }
@@ -326,8 +341,7 @@ function startGame() {
     update();
 }
 
-// --- KONTROLLER ---
-// Dokunmatik
+// --- KONTROLLER (DOKUNMATİK & KLAVYE) ---
 let touchStartX = 0;
 let touchStartY = 0;
 let touchEndTime = 0;
@@ -339,12 +353,16 @@ document.body.addEventListener('touchstart', e => {
 }, {passive: false});
 
 document.body.addEventListener('touchend', e => {
-    e.preventDefault();
+    // Sadece oyun aktifse engelle, menüde tıklamaya izin ver
+    if(gameActive) e.preventDefault(); 
+    
     const touchEndX = e.changedTouches[0].screenX;
     const touchEndY = e.changedTouches[0].screenY;
     const duration = new Date().getTime() - touchEndTime;
     const diffX = touchEndX - touchStartX;
     const diffY = touchEndY - touchStartY;
+
+    if (!gameActive) return;
 
     if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10 && duration < 300) {
         playerRotate(1);
@@ -355,7 +373,6 @@ document.body.addEventListener('touchend', e => {
     }
 }, {passive: false});
 
-// Klavye
 document.addEventListener('keydown', event => {
     if(!gameActive) return;
     if (event.keyCode === 37) playerMove(-1);
@@ -363,12 +380,8 @@ document.addEventListener('keydown', event => {
     else if (event.keyCode === 40) playerDrop();
     else if (event.keyCode === 38) playerRotate(1);
 });
-// --- SAYFA KAYMASINI ENGELLEME (KODUN EN ALTINA EKLE) ---
-document.addEventListener('touchmove', function(e) {
-    e.preventDefault();
-}, { passive: false });
 
-// Çift dokunma zoom'unu engellemek için
-document.addEventListener('dblclick', function(event) {
-    event.preventDefault();
+// Sayfa kaymasını engelle
+document.addEventListener('touchmove', function(e) {
+    if(gameActive) e.preventDefault();
 }, { passive: false });
