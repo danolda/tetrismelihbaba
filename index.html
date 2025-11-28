@@ -3,44 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>P2P Mobil Tetris</title>
+    <title>Tetris P2P - Swipe</title>
     <link rel="stylesheet" href="style.css">
-    <!-- PeerJS Kütüphanesi (Multiplayer bağlantısı için) -->
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
 
-    <div id="connection-menu">
-        <h1>Tetris P2P</h1>
-        <p>Senin ID'n: <span id="my-id">Yükleniyor...</span></p>
-        <input type="text" id="opponent-id" placeholder="Arkadaşının ID'sini gir">
-        <button onclick="connectToPeer()">Bağlan ve Başla</button>
-        <p id="status">Bağlantı bekleniyor...</p>
+    <!-- MENÜ EKRANI -->
+    <div id="menu-screen">
+        <h1>TETRIS P2P</h1>
+        <div class="menu-box">
+            <button class="big-btn" onclick="createRoom()">Oda Kur</button>
+            <p>veya</p>
+            <input type="text" id="room-link-input" placeholder="Oda Linkini Yapıştır">
+            <button class="small-btn" onclick="joinRoom()">Katıl</button>
+        </div>
+        <div id="loading" style="display:none;">Bağlantı Kuruluyor...</div>
+        <div id="share-area" style="display:none;">
+            <p>Bu linki arkadaşına gönder:</p>
+            <input type="text" id="share-link" readonly>
+            <button onclick="copyLink()">Kopyala</button>
+            <p class="waiting-text">Rakip bekleniyor...</p>
+        </div>
     </div>
 
+    <!-- OYUN EKRANI -->
     <div id="game-container" style="display:none;">
-        <div class="boards">
-            <div class="board-wrapper">
-                <span>Sen</span>
-                <canvas id="tetris" width="240" height="400"></canvas>
-                <div id="score">Skor: 0</div>
+        
+        <!-- Üst Bilgi: Skor ve Rakip -->
+        <div class="top-bar">
+            <div class="score-box">
+                <div>SKOR</div>
+                <div id="score">0</div>
             </div>
-            <div class="board-wrapper small">
-                <span>Rakip</span>
-                <canvas id="opponent" width="120" height="200"></canvas>
-                <div id="opponent-score">Skor: 0</div>
+            <div class="opponent-preview">
+                <div>RAKİP SKOR: <span id="opp-score">0</span></div>
+                <canvas id="opponent" width="100" height="150"></canvas>
             </div>
         </div>
 
-        <!-- Mobil Kontroller -->
-        <div class="controls">
-            <div class="row">
-                <button class="btn" id="btn-rotate">↻</button>
+        <!-- Ana Oyun Alanı -->
+        <div class="main-stage">
+            <div class="game-wrapper">
+                <canvas id="tetris" width="240" height="400"></canvas>
             </div>
-            <div class="row">
-                <button class="btn" id="btn-left">⬅</button>
-                <button class="btn" id="btn-down">⬇</button>
-                <button class="btn" id="btn-right">➡</button>
+            
+            <!-- Sonraki Parça (Yan Panel) -->
+            <div class="side-panel">
+                <div class="label">SIRADAKİ</div>
+                <canvas id="next-piece" width="80" height="80"></canvas>
+                <div class="controls-hint">
+                    <p>👆 Dokun: Döndür</p>
+                    <p>👈👉 Kaydır: Hareket</p>
+                    <p>👇 Kaydır: Hızlı İniş</p>
+                </div>
             </div>
         </div>
     </div>
