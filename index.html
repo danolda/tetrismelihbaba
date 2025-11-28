@@ -2,207 +2,49 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Günlük Kasa Veri Girişi</title>
-
-     <!-- ... diğer meta etiketleriniz ... -->
-    <link rel="manifest" href="/BesyildizKasa/manifest.json"> <!-- Bu yolun da doğru olduğundan emin olun -->
-
-    <!-- ============================================= -->
-    <!--      APPLE CİHAZLAR İÇİN ZORUNLU KODLAR      -->
-    <!-- ============================================= -->
-
-    <!-- 1. Ana Ekranda Görünecek İkon -->
-    <!-- Sizin için doğru yol bu olmalı: -->
-    <link rel="apple-touch-icon" href="/BesyildizKasa/icon-192.png">
-
-    <!-- 2. Tam Ekran Modunda Çalıştırma (Tarayıcı arayüzünü gizler) -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-
-    <!-- 3. Ana Ekrandaki İkonun Altındaki Başlık -->
-    <meta name="apple-mobile-web-app-title" content="Kasa Raporu">
-
-    <!-- 4. Durum Çubuğu Rengi (default, black, black-translucent) -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- ============================================= -->
-
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f4f4f9; color: #333; }
-        .container { max-width: 900px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h1, h2 { color: #d9534f; border-bottom: 2px solid #f0ad4e; padding-bottom: 10px; }
-        .section, .view-container { background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em; background-color: white; }
-        input[readonly] { background-color: #eee; cursor: not-allowed; }
-        .total-display { margin-top: 20px; padding: 15px; background-color: #f0ad4e; color: #fff; font-size: 1.5em; font-weight: bold; text-align: center; border-radius: 4px; }
-        .dynamic-list .item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        .item > *:nth-child(1) { flex: 3; }
-        .item > *:nth-child(2) { flex: 2; }
-        .btn { display: inline-block; padding: 10px 15px; background-color: #5cb85c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; margin-top: 10px; transition: background-color 0.2s; }
-        .btn:disabled { background-color: #cccccc; cursor: not-allowed; } .btn-danger { background-color: #d9534f; } .btn-save { background-color: #f0ad4e; } .btn:hover:not(:disabled) { opacity: 0.9; }
-        .download-btn { background-color: #007bff; }
-        footer { text-align: center; margin-top: 30px; padding: 15px 0; font-size: 0.8em; color: #777; border-top: 1px solid #eee; }
-        .calculator-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 20px; margin-top: 40px; padding-top: 20px; border-top: 2px solid #f0ad4e; flex-wrap: wrap; }
-        .calculator { width: 100%; max-width: 360px; background: #2a2d37; border-radius: 10px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .calculator-display-container { background: #3a3f4d; color: white; border-radius: 8px; margin-bottom: 20px; padding: 10px 20px; text-align: right; }
-        .calculator-expression { min-height: 35px; font-size: 1.5em; opacity: 0.7; word-wrap: break-word; word-break: break-all; }
-        .calculator-result { font-size: 2.5em; font-weight: bold; min-height: 45px; word-wrap: break-word; word-break: break-all; }
-        .calculator-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .calculator-keys button { height: 65px; border-radius: 8px; border: none; background: #323541; color: white; font-size: 1.5em; cursor: pointer; }
-        .calculator-keys .operator { background: #ff9f0a; } .calculator-keys .function { background: #a5a5a5; color: black; }
-        .history-panel { flex-grow: 1; max-width: 450px; padding: 20px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; }
-        .history-item { padding: 5px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; margin-bottom: 4px; display: flex; justify-content: space-between; flex-wrap: wrap;}
-        .history-item .expr { opacity: 0.8; margin-right: 5px;}
-        .history-item .res { font-weight: bold; }
-        .history-item:hover { background-color: #e9e9e9; }
-        .history-item.selected { background-color: #f0ad4e; color: white; }
-        .view-container { display: none; }
-        #main-menu-view { display: block; }
-        .main-menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 20px; background-color: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-        .menu-item:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .menu-item-title { font-size: 1.2em; font-weight: bold; }
-        .menu-item-status { font-size: 1.5em; }
-        .menu-item.status-complete { background-color: #d4edda; border-color: #c3e6cb; }
-        .menu-item.status-complete .menu-item-title { color: #155724; }
-        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
-        .main-menu-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
-
-        /* ======================================================= */
-        /* MOBİL CİHAZLAR İÇİN OPTİMİZASYON KODU (YENİ EKLENDİ)     */
-        /* ======================================================= */
-        @media (max-width: 600px) {
-            /* Ekran 600px'den darsa bu stiller uygulanır */
-
-            .container {
-                /* Telefondaki kenar boşluklarını azaltalım */
-                margin: 0;
-                padding: 10px;
-                border-radius: 0;
-                box-shadow: none;
-            }
-
-            .dynamic-list .item {
-                /* Flex yönünü dikey (alt alta) yap */
-                flex-direction: column;
-                /* Elemanları sola hizala */
-                align-items: flex-start;
-            }
-
-            /* Açıklama ve Tutar kutularının flex oranlarını sıfırla */
-            .item > *:nth-child(1),
-            .item > *:nth-child(2) {
-                flex: none;
-                width: 100%; /* Kutu genişliğini %100 yap */
-            }
-
-            /* Silme butonunu sağa hizala ve daha kullanışlı yap */
-            .dynamic-list .item .btn-danger {
-                align-self: flex-end; /* Butonu sağa yasla */
-                width: auto; /* Genişliği içeriğine göre olsun */
-                padding: 8px 12px;
-            }
-
-            .calculator-wrapper {
-                 /* Hesap makinesinin üst boşluğunu azalt */
-                margin-top: 20px;
-            }
-        }
-
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>P2P Mobil Tetris</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- PeerJS Kütüphanesi (Multiplayer bağlantısı için) -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
 
-<div class="container">
-    <h1>Günlük Kasa Veri Girişi</h1>
-    <p><strong>Tarih:</strong> <span id="current-date"></span></p>
-    <div id="main-menu-view" class="view-container">
-        <h2>İşlem Menüsü</h2>
-        <div class="main-menu-grid">
-            <div class="menu-item" onclick="showView('giderler-view')"><span class="menu-item-title">1. Giderler</span><span class="menu-item-status" data-status-for="giderler-view">⚪️</span></div>
-            <div class="menu-item" onclick="showView('yemek-fisleri-view')"><span class="menu-item-title">2. Yemek Fişleri</span><span class="menu-item-status" data-status-for="yemek-fisleri-view">⚪️</span></div>
-            <div class="menu-item" onclick="showView('notlar-view')"><span class="menu-item-title">3. Notlar</span><span class="menu-item-status" data-status-for="notlar-view">⚪️</span></div>
-            <div class="menu-item" onclick="showView('duzenleyenler-view')"><span class="menu-item-title">4. Düzenleyenler</span><span class="menu-item-status" data-status-for="duzenleyenler-view">⚪️</span></div>
-            <div class="menu-item" onclick="showView('ana-veriler-view')"><span class="menu-item-title">5. Ana Veri Girişleri</span><span class="menu-item-status" data-status-for="ana-veriler-view">⚪️</span></div>
+    <div id="connection-menu">
+        <h1>Tetris P2P</h1>
+        <p>Senin ID'n: <span id="my-id">Yükleniyor...</span></p>
+        <input type="text" id="opponent-id" placeholder="Arkadaşının ID'sini gir">
+        <button onclick="connectToPeer()">Bağlan ve Başla</button>
+        <p id="status">Bağlantı bekleniyor...</p>
+    </div>
+
+    <div id="game-container" style="display:none;">
+        <div class="boards">
+            <div class="board-wrapper">
+                <span>Sen</span>
+                <canvas id="tetris" width="240" height="400"></canvas>
+                <div id="score">Skor: 0</div>
+            </div>
+            <div class="board-wrapper small">
+                <span>Rakip</span>
+                <canvas id="opponent" width="120" height="200"></canvas>
+                <div id="opponent-score">Skor: 0</div>
+            </div>
         </div>
-        <div class="main-menu-controls">
-            <button class="btn btn-save" onclick="saveDataToLocal()">Verileri Kaydet</button>
-            <button class="btn download-btn" onclick="downloadDataFile()">Veri Dosyasını İndir</button>
-            <button class="btn btn-danger" onclick="resetData()">Formu Sıfırla</button>
+
+        <!-- Mobil Kontroller -->
+        <div class="controls">
+            <div class="row">
+                <button class="btn" id="btn-rotate">↻</button>
+            </div>
+            <div class="row">
+                <button class="btn" id="btn-left">⬅</button>
+                <button class="btn" id="btn-down">⬇</button>
+                <button class="btn" id="btn-right">➡</button>
+            </div>
         </div>
-        <div id="calculator-main" class="calculator-wrapper"></div>
     </div>
-    <div id="giderler-view" class="view-container">
-        <div class="section"><h2>Giderler (Maks. 12)</h2><div id="giderler-list" class="dynamic-list"></div><button class="btn" onclick="giderEkle()">Yeni Gider Ekle</button></div>
-        <div class="navigation-buttons"><button class="btn btn-danger" onclick="showView('main-menu-view')">Ana Menüye Dön</button><button class="btn" onclick="completeSectionAndProceed('giderler-view')">Tamamlandı</button></div>
-    </div>
-    <div id="yemek-fisleri-view" class="view-container">
-        <div class="section"><h2>Yemek Fişleri</h2><div id="yemek-fisleri-list" class="dynamic-list"></div></div>
-        <div class="navigation-buttons"><button class="btn btn-danger" onclick="showView('main-menu-view')">Ana Menüye Dön</button><button class="btn" onclick="completeSectionAndProceed('yemek-fisleri-view')">Tamamlandı</button></div>
-    </div>
-    <div id="notlar-view" class="view-container">
-        <div class="section"><h2>Notlar</h2><div id="notlar-list" class="dynamic-list"></div></div>
-        <div class="navigation-buttons"><button class="btn btn-danger" onclick="showView('main-menu-view')">Ana Menüye Dön</button><button class="btn" onclick="completeSectionAndProceed('notlar-view')">Tamamlandı</button></div>
-    </div>
-    <div id="duzenleyenler-view" class="view-container">
-        <div class="section"><h2>Düzenleyenler</h2><div class="form-group"><label for="editor1">Düzenleyen 1 (E15)</label><input type="text" id="editor1" placeholder="İsim Girin"></div><div class="form-group"><label for="editor2">Düzenleyen 2 (E16)</label><input type="text" id="editor2" placeholder="İsim Girin"></div></div>
-        <div class="navigation-buttons"><button class="btn btn-danger" onclick="showView('main-menu-view')">Ana Menüye Dön</button><button class="btn" onclick="completeSectionAndProceed('duzenleyenler-view')">Tamamlandı</button></div>
-    </div>
-    <div id="ana-veriler-view" class="view-container">
-        <div class="section"><h2>Ana Veri Girişleri</h2><div class="form-group"><label for="genelCiro">GENEL TOPLAM FİŞ CİROSU</label><input type="text" inputmode="decimal" id="genelCiro" oninput="hesapla()"></div><div class="form-group"><label for="vizaGiris">TOPLAM VİZA GİRİŞİ</label><input type="text" inputmode="decimal" id="vizaGiris" oninput="hesapla()"></div><div class="form-group"><label for="fisSayisi">FİŞ SAYISI</label><input type="text" inputmode="decimal" id="fisSayisi"></div><div class="form-group"><label for="giderPusulasi">GİDER PUSULASI TOPLAM RAKAMINI YAZINIZ</label><input type="text" inputmode="decimal" id="giderPusulasi" oninput="hesapla()"></div><div class="form-group"><label for="kasaAcigi">KASA AÇIĞI YAZ</label><input type="text" inputmode="decimal" id="kasaAcigi" oninput="hesapla()"></div><div class="form-group"><label for="kasaFazla">KASA FAZLA YAZ</label><input type="text" inputmode="decimal" id="kasaFazla" oninput="hesapla()"></div><div class="total-display">TOPLAM NAKİT KALAN PARA: <span id="toplamNakitKalan">0,00</span></div></div>
-        <div class="main-menu-controls"><button class="btn download-btn" onclick="downloadDataFile()">Veri Dosyasını İndir</button></div>
-        <div id="calculator-anaveriler" class="calculator-wrapper"></div>
-        <div class="navigation-buttons"><button class="btn btn-danger" onclick="showView('main-menu-view')">Ana Menüye Dön</button><button class="btn" onclick="completeSectionAndProceed('ana-veriler-view')">Tamamlandı</button></div>
-    </div>
-</div>
-<footer>© Copyright 2025 by Melih Emre Karaköse. All Rights Reserved.</footer>
 
-<script>
-    const MAX_GIDERLER = 12; const LOCAL_STORAGE_KEY = 'kasaRaporuVerileri'; const CALC_HISTORY_KEY = 'calculatorHistory'; let selectedHistoryIndex = -1;
-    const tarih = new Date(); const tarihYazisi = tarih.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + " " + tarih.toLocaleDateString('tr-TR', { weekday: 'long' }).toUpperCase(); document.getElementById('current-date').textContent = tarihYazisi;
-    const viewOrder = ['giderler-view', 'yemek-fisleri-view', 'notlar-view', 'duzenleyenler-view', 'ana-veriler-view'];
-    function formatToCurrency(num) { return num.toFixed(2).replace('.', ','); }
-    const getFloat = (id) => parseFloat((document.getElementById(id).value.replace(/\./g, '').replace(',', '.')) || '0');
-    const getFloatFromValue = (valueStr) => parseFloat((valueStr.replace(/\./g, '').replace(',', '.')) || '0');
-    function showView(viewId) { document.querySelectorAll('.view-container').forEach(v => v.style.display = 'none'); document.getElementById(viewId).style.display = 'block'; }
-    function completeSectionAndProceed(currentViewId) { const statusElement = document.querySelector(`.menu-item-status[data-status-for="${currentViewId}"]`); if (statusElement) statusElement.textContent = '✅'; const menuItem = statusElement.closest('.menu-item'); if (menuItem) menuItem.classList.add('status-complete'); const currentIndex = viewOrder.indexOf(currentViewId); if (currentIndex > -1 && currentIndex < viewOrder.length - 1) { showView(viewOrder[currentIndex + 1]); } else { showView('main-menu-view'); } }
-    function hesapla() { const genelCiro = getFloat('genelCiro'); const vizaGiris = getFloat('vizaGiris'); const nakitGiris = genelCiro - vizaGiris; let giderlerToplami = getFloat('giderPusulasi'); document.querySelectorAll('#giderler-list .item').forEach(item => { giderlerToplami += getFloatFromValue(item.children[1].value); }); let yemekFisleriToplami = 0; document.querySelectorAll('#yemek-fisleri-list .item').forEach(item => { yemekFisleriToplami += getFloatFromValue(item.children[1].value); }); const nakitKalan = nakitGiris - giderlerToplami - yemekFisleriToplami; document.getElementById('toplamNakitKalan').textContent = formatToCurrency(nakitKalan - getFloat('kasaAcigi') + getFloat('kasaFazla')); }
-    function updateButtonStates() { document.querySelector('#giderler-view .btn:not(.btn-danger)').disabled = document.querySelectorAll('#giderler-list .item').length >= MAX_GIDERLER; }
-    function createDynamicItem(listId, itemData) { const list = document.getElementById(listId); const item = document.createElement('div'); item.className = 'item'; const keyInput = document.createElement('input'); keyInput.type = 'text'; keyInput.placeholder = 'Açıklama'; keyInput.value = itemData.key || ''; if(itemData.isReadOnly) keyInput.readOnly = true; item.appendChild(keyInput); const valueInput = document.createElement('input'); valueInput.type = 'text'; valueInput.inputMode = 'decimal'; valueInput.placeholder = 'Tutar'; valueInput.value = itemData.val || ''; valueInput.oninput = hesapla; item.appendChild(valueInput); if (!itemData.isReadOnly) { const removeBtn = document.createElement('button'); removeBtn.textContent = 'Sil'; removeBtn.className = 'btn btn-danger'; removeBtn.onclick = () => { item.remove(); hesapla(); updateButtonStates(); }; item.appendChild(removeBtn); } list.appendChild(item); }
-    const createNoteItem = (placeholder, val = '') => { const list = document.getElementById('notlar-list'); const item = document.createElement('div'); item.className = 'item note-item'; const noteInput = document.createElement('input'); noteInput.type = 'text'; noteInput.placeholder = placeholder; noteInput.value = val; item.appendChild(noteInput); list.appendChild(item); };
-    const giderEkle = (key = '', val = '') => { if (document.querySelectorAll('#giderler-list .item').length >= MAX_GIDERLER) return; createDynamicItem('giderler-list', {key, val}); updateButtonStates(); };
-    function saveDataToLocal() { const dataToSave = { main: {}, giderler: [], yemekFisleri: [], notlar: [], duzenleyenler: [], completionStatus: {} }; ['genelCiro', 'vizaGiris', 'fisSayisi', 'giderPusulasi', 'kasaAcigi', 'kasaFazla'].forEach(id => { if(document.getElementById(id)) dataToSave.main[id] = document.getElementById(id).value; }); document.querySelectorAll('#giderler-list .item').forEach(item => dataToSave.giderler.push({ key: item.children[0].value, val: item.children[1].value })); document.querySelectorAll('#yemek-fisleri-list .item').forEach(item => dataToSave.yemekFisleri.push({ key: item.children[0].value, val: item.children[1].value })); document.querySelectorAll('#notlar-list .item input').forEach(input => dataToSave.notlar.push(input.value)); dataToSave.duzenleyenler = [document.getElementById('editor1').value, document.getElementById('editor2').value]; document.querySelectorAll('.menu-item').forEach(item => { if(item.classList.contains('status-complete')) { const viewId = item.querySelector('.menu-item-status').dataset.statusFor; dataToSave.completionStatus[viewId] = true; } }); localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave)); alert('Verileriniz bu tarayıcıya başarıyla kaydedildi!'); }
-    function loadDataFromLocal() { const savedData = localStorage.getItem(LOCAL_STORAGE_KEY); if (!savedData) return; const data = JSON.parse(savedData); document.getElementById('giderler-list').innerHTML = ''; document.getElementById('yemek-fisleri-list').innerHTML = ''; document.getElementById('notlar-list').innerHTML = ''; Object.keys(data.main).forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = data.main[id]; }); data.giderler.forEach(g => createDynamicItem('giderler-list', {key: g.key, val: g.val})); data.yemekFisleri.forEach(f => createDynamicItem('yemek-fisleri-list', {key: f.key, val: f.val, isReadOnly: true})); createNoteItem('Not 1', data.notlar[0] || ''); createNoteItem('Not 2', data.notlar[1] || ''); createNoteItem('Not 3', data.notlar[2] || ''); document.getElementById('editor1').value = data.duzenleyenler[0] || ''; document.getElementById('editor2').value = data.duzenleyenler[1] || ''; if(data.completionStatus) { Object.keys(data.completionStatus).forEach(viewId => { const statusEl = document.querySelector(`.menu-item-status[data-status-for="${viewId}"]`); if(statusEl) { statusEl.textContent = '✅'; statusEl.closest('.menu-item').classList.add('status-complete'); } }); } hesapla(); updateButtonStates(); }
-    function resetData() { if (confirm('Emin misiniz? Kayıtlı tüm veriler silinecek ve form sıfırlanacak.')) { localStorage.removeItem(LOCAL_STORAGE_KEY); localStorage.removeItem(CALC_HISTORY_KEY); window.location.reload(); } }
-    
-    function downloadDataFile() {
-        // ### YENİ KONTROL: Tüm bölümlerin tamamlanıp tamamlanmadığını kontrol et ###
-        const menuItems = document.querySelectorAll('.main-menu-grid .menu-item');
-        const completedItems = document.querySelectorAll('.main-menu-grid .menu-item.status-complete');
-        if (completedItems.length < menuItems.length) {
-            alert('Lütfen tüm bölümleri "Tamamlandı" olarak işaretledikten sonra veri dosyasını indirin.');
-            return; // Fonksiyonu burada durdur
-        }
-        // ######################################################################
-
-        const yemekFisleri = []; document.querySelectorAll('#yemek-fisleri-list .item').forEach(item => { const aciklama = item.children[0].value.trim(); const tutar = getFloatFromValue(item.children[1].value); if (aciklama) yemekFisleri.push({ aciklama, tutar }); }); const digerGiderler = []; document.querySelectorAll('#giderler-list .item').forEach(item => { const aciklama = item.children[0].value.trim(); const tutar = getFloatFromValue(item.children[1].value); if (aciklama && tutar > 0) digerGiderler.push({ aciklama, tutar }); }); const notlar = []; document.querySelectorAll('#notlar-list .item input').forEach(input => { if (input.value.trim()) notlar.push(input.value.trim()); }); const duzenleyenler = []; const editor1 = document.getElementById('editor1').value.trim(); const editor2 = document.getElementById('editor2').value.trim(); if (editor1) duzenleyenler.push(editor1); if (editor2) duzenleyenler.push(editor2); const vizaGiris = getFloat('vizaGiris'); const nakitGiris = getFloat('genelCiro') - vizaGiris; const giderPusulasi = getFloat('giderPusulasi'); const giderToplamlari = digerGiderler.reduce((s, g) => s + g.tutar, 0) + giderPusulasi; const yemekFisleriToplami = yemekFisleri.reduce((s, f) => s + f.tutar, 0); const nakitKalan = nakitGiris - giderToplamlari - yemekFisleriToplami; const data = { tarih: tarihYazisi, genelCiro: getFloat('genelCiro'), nakitGiris, vizaGiris, fisSayisi: getFloat('fisSayisi'), giderPusulasi, digerGiderler, yemekFisleri, notlar, giderToplamlari, nakitKalan, kasaAcigi: getFloat('kasaAcigi'), kasaFazla: getFloat('kasaFazla'), duzenleyenler }; const jsonData = JSON.stringify(data, null, 2); const blob = new Blob([jsonData], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.download = `${new Date().toLocaleDateString('tr-TR').replace(/\./g, '-')}.json`; link.href = url; document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url); 
-    }
-
-    const calculatorHTML = `<div class="calculator"><div class="calculator-display-container"><div class="calculator-expression" id="calc-expression"> </div><div class="calculator-result" id="calc-result">0</div></div><div class="calculator-keys"><button class="function" data-key="clear">AC</button><button class="function" data-key="backspace">⌫</button><button class="operator" data-key="%">%</button><button class="operator" data-key="/">÷</button><button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button class="operator" data-key="*">×</button><button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button class="operator" data-key="-">−</button><button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button class="operator" data-key="+">+</button><button data-key="0">0</button><button data-key=".">.</button><button class="operator" data-key="=" style="grid-column: span 2;">=</button></div></div><div class="history-panel"><h3>İşlem Geçmişi <button class="btn btn-danger btn-sm" id="clear-history">Temizle</button></h3><div class="history-content" id="history-content"></div><div class="transfer-buttons" style="margin-top: 10px;"><button class="btn transfer-btn" data-target-id="genelCiro">FİŞ CİROSU</button><button class="btn transfer-btn" data-target-id="vizaGiris">TOPLAM VİZA</button><button class="btn transfer-btn" data-target-id="giderPusulasi">GİDER PUSULASI</button><button class="btn transfer-btn" data-target-id="fisSayisi">FİŞ SAYISI</button></div></div>`;
-    document.getElementById('calculator-main').innerHTML = calculatorHTML;
-    document.getElementById('calculator-anaveriler').innerHTML = calculatorHTML;
-    let currentExpression = ''; let history = [];
-    function evaluateExpression(expr) { if (!expr || /[\+\-\*\/%]$/.test(expr.trim())) { const lastOpIndex = Math.max(expr.lastIndexOf('+'), expr.lastIndexOf('-'), expr.lastIndexOf('*'), expr.lastIndexOf('/'), expr.lastIndexOf('%')); expr = expr.substring(0, lastOpIndex).trim(); } if (!expr) return 0; try { return new Function('return ' + expr.replace(/,/g, '.'))(); } catch (e) { return NaN; } }
-    function updateCalculatorDisplay() { document.querySelectorAll('.calculator-wrapper').forEach(wrapper => { const liveResult = evaluateExpression(currentExpression); const formattedLiveResult = !isNaN(liveResult) ? liveResult.toLocaleString('tr-TR', { maximumFractionDigits: 7 }) : ''; const formattedExpression = currentExpression.replace(/\//g, ' ÷ ').replace(/\*/g, ' × ').replace(/\+/g, ' + ').replace(/-/g, ' - ').replace(/%/g, ' % '); wrapper.querySelector('.calculator-expression').textContent = formattedLiveResult; wrapper.querySelector('.calculator-result').textContent = formattedExpression || '0'; });}
-    function handleCalculatorInput(key) { if (/\d/.test(key)) { currentExpression += key; } else if (key === '.') { const parts = currentExpression.split(/[\+\-\*\/%]/); if (!parts[parts.length - 1].includes('.')) { currentExpression += key; } } else if (['+', '-', '*', '/', '%'].includes(key)) { if (currentExpression && !/[\+\-\*\/%]$/.test(currentExpression.trim())) { currentExpression += key; } } else if (key === 'clear') { currentExpression = ''; } else if (key === 'backspace') { currentExpression = currentExpression.trim().slice(0, -1).trim(); } else if (key === '=') { if (currentExpression && !/[\+\-\*\/%]$/.test(currentExpression.trim())) { const result = evaluateExpression(currentExpression); if (!isNaN(result)) { addToHistory(currentExpression, result); currentExpression = String(result).replace('.', ','); } } } updateCalculatorDisplay(); }
-    function addToHistory(expr, res) { const formattedExpr = expr.replace(/\//g, '÷').replace(/\*/g, '×'); const formattedRes = res.toLocaleString('tr-TR', { maximumFractionDigits: 7 }); history.unshift({ expr: formattedExpr, res: formattedRes, rawRes: res }); if (history.length > 50) history.pop(); saveHistory(); renderHistory(); }
-    function renderHistory() { document.querySelectorAll('.history-content').forEach(hc => { hc.innerHTML = ''; history.forEach((item, index) => { const historyItem = document.createElement('div'); historyItem.className = 'history-item'; if (index === selectedHistoryIndex) { historyItem.classList.add('selected'); } historyItem.innerHTML = `<span class="expr">${item.expr} =</span><span class="res">${item.res}</span>`; historyItem.addEventListener('click', () => { selectedHistoryIndex = (selectedHistoryIndex === index) ? -1 : index; renderHistory(); }); hc.appendChild(historyItem); }); }); }
-    function saveHistory() { localStorage.setItem(CALC_HISTORY_KEY, JSON.stringify(history)); }
-    function loadHistory() { const savedHistory = localStorage.getItem(CALC_HISTORY_KEY); if (savedHistory) { history = JSON.parse(savedHistory); renderHistory(); } }
-    document.querySelectorAll('.calculator-wrapper').forEach(wrapper => { wrapper.querySelector('.calculator-keys').addEventListener('click', (event) => { if (event.target.matches('button')) { handleCalculatorInput(event.target.dataset.key); } }); wrapper.querySelector('#clear-history').addEventListener('click', () => { history = []; selectedHistoryIndex = -1; saveHistory(); renderHistory(); }); wrapper.querySelector('.transfer-buttons').addEventListener('click', (event) => { if (event.target.matches('.transfer-btn')) { if (selectedHistoryIndex === -1) { alert('Lütfen önce işlem geçmişinden bir değer seçin.'); return; } const targetId = event.target.dataset.targetId; const targetInput = document.getElementById(targetId); if (targetInput) { const selectedValue = history[selectedHistoryIndex].rawRes; targetInput.value = String(selectedValue).replace('.', ','); hesapla(); selectedHistoryIndex = -1; renderHistory(); } } }); });
-    window.onload = function() { const savedData = localStorage.getItem(LOCAL_STORAGE_KEY); if (savedData) { loadDataFromLocal(); } else { giderEkle('EKMEK ÖDEMESİ'); giderEkle('PERSONEL EKMEK'); createDynamicItem('yemek-fisleri-list', {key: 'SODEXO', isReadOnly: true}); createDynamicItem('yemek-fisleri-list', {key: 'SETCARD', isReadOnly: true}); createDynamicItem('yemek-fisleri-list', {key: 'TOKEN FLEX', isReadOnly: true}); createDynamicItem('yemek-fisleri-list', {key: 'TICKET', isReadOnly: true}); createNoteItem('Not 1'); createNoteItem('Not 2'); createNoteItem('Not 3'); } updateButtonStates(); hesapla(); loadHistory(); updateCalculatorDisplay(); showView('main-menu-view'); };
-</script>
-
+    <script src="script.js"></script>
 </body>
 </html>
