@@ -6,7 +6,18 @@
 }
 
 * {
-    box-sizing: border-box; /* Taşmaları engellemek için şart */
+    box-sizing: border-box;
+    /* Mobilde uzun basınca metin seçmeyi engelle */
+    -webkit-user-select: none;
+    user-select: none;
+    /* Dokunma gecikmesini kaldır */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Inputlar seçilebilir olmalı */
+input {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 body {
@@ -15,14 +26,10 @@ body {
     font-family: sans-serif;
     margin: 0;
     padding: 0;
-    /* Mobilde sayfanın oynamasını engellemek için fixledik */
     position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     overflow: hidden;
-    touch-action: none; /* Yakınlaştırma ve kaydırmayı engelle */
+    /* BURADAKİ touch-action: none'u KALDIRDIK */
 }
 
 /* --- MENÜ VE MODAL --- */
@@ -35,6 +42,8 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 100;
+    /* Menüde kaydırmaya izin ver ama zoom engelle */
+    touch-action: manipulation; 
 }
 
 .menu-box, .modal-content {
@@ -49,7 +58,7 @@ body {
 .big-btn {
     background: var(--accent);
     border: none;
-    padding: 12px;
+    padding: 15px; /* Tıklama alanı büyütüldü */
     font-size: 1.1rem;
     font-weight: bold;
     border-radius: 8px;
@@ -57,29 +66,34 @@ body {
     width: 100%;
     margin-bottom: 10px;
     color: #000;
+    touch-action: manipulation; /* Tıklanabilirliği garanti et */
 }
 
 input {
-    width: 100%; padding: 10px; margin: 10px 0;
+    width: 100%; padding: 12px; margin: 10px 0;
     border-radius: 5px; border: 1px solid #555;
     background: #222; color: white;
+    font-size: 1rem;
+    touch-action: manipulation;
 }
 
-/* --- OYUN KONTEYNERİ --- */
+/* --- OYUN ALANI --- */
 #game-container {
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
-    padding: 5px; /* Kenar boşluğunu azalttık */
+    padding: 5px;
+    /* SADECE OYUN ALANINDA DOKUNMATİĞİ KİLİTLE */
+    touch-action: none;
 }
 
-/* ÜST BAR (SKORLAR) */
+/* Diğer CSS kodları aynı kalabilir... */
 .top-bar {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    height: 50px; /* Sabit yükseklik */
+    height: 50px;
     align-items: center;
     background: var(--panel-bg);
     padding: 0 15px;
@@ -89,40 +103,32 @@ input {
     font-weight: bold;
 }
 
-/* OYUN ALANI (SAHNE) */
 .stage-area {
     display: flex;
-    flex: 1; /* Kalan tüm yüksekliği kapla */
-    flex-direction: row; /* Yan yana dizilim */
+    flex: 1;
+    flex-direction: row;
     justify-content: center;
-    align-items: flex-start; /* Yukarı yasla */
+    align-items: flex-start;
     gap: 5px;
-    overflow: hidden;
     position: relative;
 }
 
-/* ANA TETRIS TAHTASI */
 .game-wrapper {
-    /* Yükseklik kalan alanın tamamı olsun ama taşmasın */
     height: 100%; 
-    /* Genişliği aspect-ratio belirlesin */
     aspect-ratio: 12 / 20; 
     border: 2px solid #555;
     background: #000;
 }
 
 canvas#tetris {
-    width: 100%;
-    height: 100%;
-    display: block;
+    width: 100%; height: 100%; display: block;
 }
 
-/* YAN PANEL */
 .side-panel {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    width: 80px; /* Sabit genişlik, mobilde yer kaplamasın */
+    width: 80px;
     height: 100%;
 }
 
@@ -137,49 +143,20 @@ canvas#tetris {
     justify-content: center;
 }
 
-.mini-box span {
-    font-size: 0.7rem;
-    color: #aaa;
-    margin-bottom: 2px;
-}
-
+.mini-box span { font-size: 0.7rem; color: #aaa; margin-bottom: 2px; }
 canvas#next-piece { width: 60px; height: 60px; background: #000; border: 1px solid #444; }
 canvas#opponent { width: 70px; height: 116px; background: #000; border: 1px solid #444; }
 
 .controls-hint {
-    margin-top: auto; /* En alta it */
-    font-size: 0.65rem;
-    color: #777;
-    text-align: center;
-    background: rgba(0,0,0,0.5);
-    padding: 5px;
-    border-radius: 5px;
+    margin-top: auto; font-size: 0.65rem; color: #777; text-align: center;
+    background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px;
 }
 
-/* --- TELEFON İÇİN KRİTİK AYARLAR (Max-Width 600px) --- */
 @media (max-width: 600px) {
-    /* Üst barı biraz küçült */
-    .top-bar {
-        height: 40px;
-        font-size: 0.8rem;
-    }
-
-    /* Oyun alanı */
-    .stage-area {
-        /* Dikeyde ortala */
-        align-items: center;
-    }
-
-    /* Eğer ekran çok darsa (iPhone SE gibi), yan paneli biraz daha küçült */
-    .side-panel {
-        width: 70px;
-    }
-    
+    .top-bar { height: 40px; font-size: 0.8rem; }
+    .stage-area { align-items: center; }
+    .side-panel { width: 70px; }
     canvas#opponent { width: 60px; height: 100px; }
     canvas#next-piece { width: 50px; height: 50px; }
-    
-    /* İpuçlarını mobilde gizle ki ekran temiz kalsın */
-    .controls-hint {
-        display: none;
-    }
+    .controls-hint { display: none; }
 }
