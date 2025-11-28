@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tetris P2P - Swipe</title>
+    <title>Tetris P2P - Auto Size</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
@@ -27,35 +27,47 @@
         </div>
     </div>
 
+    <!-- OYUN SONU EKRANI (MODAL) -->
+    <div id="game-over-modal" style="display:none;">
+        <div class="modal-content">
+            <h2 id="result-title">OYUN BİTTİ</h2>
+            <div class="scores-result">
+                <p>Senin Puanın: <span id="final-my-score">0</span></p>
+                <p>Rakip Puanı: <span id="final-opp-score">0</span></p>
+            </div>
+            <button class="big-btn" onclick="location.reload()">Tekrar Oyna</button>
+        </div>
+    </div>
+
     <!-- OYUN EKRANI -->
     <div id="game-container" style="display:none;">
         
-        <!-- Üst Bilgi: Skor ve Rakip -->
+        <!-- Üst Bilgi -->
         <div class="top-bar">
-            <div class="score-box">
-                <div>SKOR</div>
-                <div id="score">0</div>
-            </div>
-            <div class="opponent-preview">
-                <div>RAKİP SKOR: <span id="opp-score">0</span></div>
-                <canvas id="opponent" width="100" height="150"></canvas>
-            </div>
+            <div class="score-box">SEN: <span id="score">0</span></div>
+            <div class="score-box">RAKİP: <span id="opp-score">0</span></div>
         </div>
 
-        <!-- Ana Oyun Alanı -->
-        <div class="main-stage">
-            <div class="game-wrapper">
-                <canvas id="tetris" width="240" height="400"></canvas>
-            </div>
-            
-            <!-- Sonraki Parça (Yan Panel) -->
+        <!-- Sahne (Responsive) -->
+        <div class="stage-area">
+            <!-- Ana Oyun -->
+            <canvas id="tetris"></canvas>
+
+            <!-- Yan Panel (Gelecek Parça + Rakip Ekranı) -->
             <div class="side-panel">
-                <div class="label">SIRADAKİ</div>
-                <canvas id="next-piece" width="80" height="80"></canvas>
+                <div class="mini-box">
+                    <span>SONRAKİ</span>
+                    <canvas id="next-piece"></canvas>
+                </div>
+                <div class="mini-box">
+                    <span>RAKİP</span>
+                    <canvas id="opponent"></canvas>
+                </div>
+                <!-- Kontrol İpucu -->
                 <div class="controls-hint">
-                    <p>👆 Dokun: Döndür</p>
-                    <p>👈👉 Kaydır: Hareket</p>
-                    <p>👇 Kaydır: Hızlı İniş</p>
+                    👆 Çevir<br>
+                    👈👉 Hareket<br>
+                    👇 Hızlı İniş
                 </div>
             </div>
         </div>
